@@ -15,6 +15,9 @@ class Role(Base):
     users: Mapped[list["User"]] = relationship(back_populates="role")
     #двусторонняя связь с атрибутом role в классе User
 
+    def __repr__(self) -> str:
+        return f"Role(id={self.role_id!r}, name={self.name!r})"
+
    
 
 class User(Base):
@@ -47,6 +50,9 @@ class Lists(Base):
    
     notes: Mapped[list["Note"]] = relationship(back_populates="list")
     subscriptions: Mapped[list['Subscription']] = relationship(back_populates="list")
+
+    def __repr__(self) -> str:
+        return f"Lists(id={self.list_id!r}, title={self.title!r})"
 
 class Note(Base):
     __tablename__ = 'notes'
@@ -83,3 +89,6 @@ class Subscription(Base):
 
     user: Mapped["User"] = relationship(back_populates="subscriptions")
     list: Mapped["Lists"] = relationship(back_populates="subscriptions")
+
+    def __repr__(self) -> str:
+        return f"Subscription(user_id={self.user_id!r}, list_id={self.list_id!r})"
