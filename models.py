@@ -33,21 +33,20 @@ class User(Base):
 
     
     role: Mapped["Role"] = relationship( back_populates="users")
-    lists: Mapped[list['List']] = relationship(back_populates="creator")
     notes: Mapped[list["Note"]]= relationship(back_populates="user")
 
     subscriptions: Mapped[list['Subscription']] = relationship( back_populates="user")
     def __repr__(self) -> str:
         return f"User(id={self.user_id!r}, name={self.username!r}, email={self.email!r})"
 
-class List(Base):
+class Lists(Base):
     __tablename__ = 'lists'
 
     list_id:Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     title: Mapped[str]= mapped_column(String(255), nullable=False)
    
     notes: Mapped[list["Note"]] = relationship(back_populates="list")
-    subscriptions: Mapped[List['Subscription']] = relationship(back_populates="list")
+    subscriptions: Mapped[list['Subscription']] = relationship(back_populates="list")
 
 class Note(Base):
     __tablename__ = 'notes'
@@ -68,7 +67,7 @@ class Note(Base):
         return f"Note(id={self.note_id!r}, title={self.title!r}, author={self.author!r})"
 
     user: Mapped["User"] = relationship(back_populates="notes")
-    list: Mapped['List'] = relationship(back_populates="notes")
+    list: Mapped['Lists'] = relationship(back_populates="notes")
 
 class Subscription(Base):
     __tablename__ = 'subscriptions'
@@ -83,4 +82,4 @@ class Subscription(Base):
     )
 
     user: Mapped["User"] = relationship(back_populates="subscriptions")
-    list: Mapped["List"] = relationship(back_populates="subscriptions")
+    list: Mapped["Lists"] = relationship(back_populates="subscriptions")
