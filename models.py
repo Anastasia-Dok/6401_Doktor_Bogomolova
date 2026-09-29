@@ -2,18 +2,21 @@
 from sqlalchemy import  Integer, String, Text, ForeignKey, Index #Импорт элементов SQLAlchemy, которые используются внутри колонок
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
-#Создаём общий родительский класс Base для всех моделей.
+#Создаём общий родительский класс Base для всех моделей. который наследует от DeclarativeBase
 class Base(DeclarativeBase):
     pass
 
 class Role(Base):
+    # задающий имя таблицы (уникальный в рамках одного Base)
     __tablename__ = 'roles'
-    
+    #поле первичного ключа
+                #Тип и параметры колонки
     role_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    #Поля, участвующие в механизме персистентности
     name: Mapped[str] = mapped_column(String(20), unique=True, nullable=False)
 
     users: Mapped[list["User"]] = relationship(back_populates="role")
-    #двусторонняя связь с атрибутом role в классе User
+    #двусторонняя связь с атрибутом role в классе User. для автоматичиского обновления изменений.
 
     def __repr__(self) -> str:
         return f"Role(id={self.role_id!r}, name={self.name!r})"
@@ -70,7 +73,7 @@ class Note(Base):
         Index('idx_notes_list_id', 'list_id'),
     )
     def __repr__(self) -> str:
-        return f"Note(id={self.note_id!r}, title={self.title!r}, author={self.author!r})"
+        return f"Note(id={self.note_id!r}, title={self.title!r}, author={self.author!r}, review={self.review!r})"
 
     user: Mapped["User"] = relationship(back_populates="notes")
     list: Mapped['Lists'] = relationship(back_populates="notes")

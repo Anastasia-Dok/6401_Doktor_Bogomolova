@@ -8,22 +8,29 @@ from security import hash_password
 
 # ---------- CRUD для Role ----------
 def create_role(name: str) -> Role:
-    with Session(engine) as session:
-        role = Role(name=name)
-        session.add(role)
-        session.commit()
-        session.refresh(role)        
-        return role
+    with Session(engine) as session: # открыть сессию
+        role = Role(name=name)# Transient - объект в памяти
+        session.add(role)#добавить объект в Session (пометить на добавление в БД).
+        #Pending — сессия знает о нём
+        # Persistent
+        session.commit()#завершает текущую транзакцию, делая все изменения постоянными
+        session.refresh(role) #заново загрузить объект из БД       
+        return role # объект Detached, но с данными
 
 def get_role(role_id: int) -> Role | None:
     with Session(engine) as session:
-        return session.get(Role, role_id)
+        return session.get(Role, role_id) 
+    #Сначала смотрит в identity map (кэш сессии). Если объект с этим PK уже загружен — вернёт его без SQL.
+    #Если нет — генерирует 
+    #объект Detached после return
+    #получить объект по значению первичного ключа
 
 def update_role(role_id: int, new_name: str) -> Role | None:
     with Session(engine) as session:
-        role = session.get(Role, role_id)
+        role = session.get(Role, role_id)  # загрузили Persistent-объект
         if role:
             role.name = new_name
+            #завершает текущую транзакцию, делая все изменения постоянными
             session.commit()
             session.refresh(role)
         return role
@@ -32,7 +39,8 @@ def delete_role(role_id: int) -> bool:
     with Session(engine) as session:
         role = session.get(Role, role_id)
         if role:
-            session.delete(role)
+            session.delete(role)#пометить объект на удаление
+            #завершает текущую транзакцию, делая все изменения постоянными
             session.commit()
             return True
         return False
@@ -40,16 +48,18 @@ def delete_role(role_id: int) -> bool:
 def get_all_users_with_role() -> list[User]:
     """Все пользователи с ролями """
     with Session(engine) as session:
+                                # жадная загрузка: 
+                                # сразу подтянуть связанные роли одним JOIN-запросом
         stmt = select(User).options(joinedload(User.role)).order_by(User.user_id)
-        return list(session.scalars(stmt).all())
+        return list(session.scalars(stmt).all()) #выполняет запрос, возвращает объекты User
 
 # ---------- CRUD для User ----------
-def create_user(username: str, email: str, password_hash: str, role_id: int) -> User:
+def create_user(username: str, email: str, password: str, role_id: int) -> User:
     with Session(engine) as session:
         user = User(
             username=username,
             email=email,
-            password_hash=hash_password(password_hash),
+            password_hash=hash_password(password),
             role_id=role_id
         )
         session.add(user)
@@ -59,7 +69,7 @@ def create_user(username: str, email: str, password_hash: str, role_id: int) -> 
 
 def get_user_by_id(user_id: int) -> User | None:
     with Session(engine) as session:
-        return session.get(User, user_id)
+        return session.get(User, user_id) # если после return обратиться к user.role, будет DetachedInstanceError
 
 
 def get_user_by_email(email: str) -> User | None:
@@ -149,7 +159,7 @@ def get_list_with_notes(list_id: int) -> Lists | None:
         stmt = (
             select(Lists)
             .where(Lists.list_id == list_id)
-            .options(selectinload(Lists.notes))
+            .options(selectinload(Lists.notes))# Делает два SQL-запроса
         )
         return session.scalars(stmt).first()
 
@@ -160,7 +170,9 @@ def get_list_with_notes_and_authors(list_id: int) -> Lists | None:
             select(Lists)
             .where(Lists.list_id == list_id)
             .options(
+                
                 selectinload(Lists.notes).joinedload(Note.user)
+                 #  жадная загрузка заметок
             )
         )
         return session.scalars(stmt).first()

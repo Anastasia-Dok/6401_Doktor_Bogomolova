@@ -76,6 +76,8 @@ def main() -> None:
     else:
         print("  get_list_with_notes_and_authors(1) -> нет заметок")
 
+    
+
     # ---------- Note ----------
     section("NOTE")
     note = get_note(1)
@@ -90,10 +92,12 @@ def main() -> None:
 
     notes_by_list = get_notes_by_list(1)
     print(f"  get_notes_by_list(1) -> {len(notes_by_list)} заметок")
+    for n in notes_by_list:
+        print(f"    [{n.note_id}] {n.author} — {n.title}: {n.review}")
 
     notes_by_user = get_notes_by_user(2)
-    print(f"  get_notes_by_user(2) -> {len(notes_by_user)} заметок")
-
+    print(f"  get_notes_by_user(2) -> {notes_by_user}")
+    
     note_with_author = get_note_with_author(2)
     if note_with_author:
         print(f"  get_note_with_author(2) -> '{note_with_author.title}', автор: {note_with_author.user.username}")
