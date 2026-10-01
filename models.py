@@ -65,7 +65,7 @@ class Note(Base):
     list_id: Mapped[int] = mapped_column(ForeignKey('lists.list_id'), nullable=False)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     author: Mapped[str] = mapped_column(String(255), nullable=False)
-    review: Mapped[str] = mapped_column(Text, nullable=True)
+    review: Mapped[str] = mapped_column(Text, nullable=False)
 
     # Индексы
     __table_args__ = (
@@ -82,13 +82,9 @@ class Subscription(Base):
     __tablename__ = 'subscriptions'
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.user_id"), primary_key=True)
-    list_id: Mapped[int] = mapped_column ( ForeignKey('lists.list_id'), primary_key=True)
+    list_id: Mapped[int] = mapped_column (ForeignKey('lists.list_id'), primary_key=True)
 
     # Индексы
-    __table_args__ = (
-        Index('idx_subscriptions_user_id', 'user_id'),
-        Index('idx_subscriptions_list_id', 'list_id'),
-    )
 
     user: Mapped["User"] = relationship(back_populates="subscriptions")
     list: Mapped["Lists"] = relationship(back_populates="subscriptions")

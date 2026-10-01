@@ -1,10 +1,10 @@
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload, joinedload
-from db import engine
+from data_base.db import engine
 from models import Base, Role, User, Lists, Note, Subscription
 from security import hash_password
-
+from sqlalchemy.exc import IntegrityError
 
 # ---------- CRUD для Role ----------
 def create_role(name: str) -> Role:
@@ -13,7 +13,11 @@ def create_role(name: str) -> Role:
         session.add(role)#добавить объект в Session (пометить на добавление в БД).
         #Pending — сессия знает о нём
         # Persistent
-        session.commit()#завершает текущую транзакцию, делая все изменения постоянными
+        try:
+            session.commit()#завершает текущую транзакцию, делая все изменения постоянными
+        except IntegrityError as e:
+            session.rollback()
+            raise ValueError(f"Роль '{name}' уже существует") from e
         session.refresh(role) #заново загрузить объект из БД       
         return role # объект Detached, но с данными
 
@@ -30,8 +34,11 @@ def update_role(role_id: int, new_name: str) -> Role | None:
         role = session.get(Role, role_id)  # загрузили Persistent-объект
         if role:
             role.name = new_name
-            #завершает текущую транзакцию, делая все изменения постоянными
-            session.commit()
+            try:
+                session.commit()
+            except IntegrityError as e:
+                session.rollback()
+                raise ValueError(f"Роль с именем '{new_name}' уже существует") from e
             session.refresh(role)
         return role
 
@@ -63,7 +70,18 @@ def create_user(username: str, email: str, password: str, role_id: int) -> User:
             role_id=role_id
         )
         session.add(user)
-        session.commit()
+        try:
+            session.commit()
+        except IntegrityError as e:
+            session.rollback()
+            msg = str(e.orig)
+            if "username" in msg:
+                raise ValueError(f"Username '{username}' уже занят") from e
+            if "email" in msg:
+                raise ValueError(f"Email '{email}' уже занят") from e
+            if "role_id" in msg:
+                raise ValueError(f"Роли с id={role_id} не существует") from e
+            raise
         session.refresh(user)
         return user
 
@@ -91,14 +109,23 @@ def get_user_by_username(username: str) -> User | None:
         )
         return session.scalars(stmt).first()
 
-def update_user(user_id: int, **kwargs) -> User | None:
+def update_user(user_id: int, *, username=None, email=None, role_id=None) -> User | None:
     with Session(engine) as session:
         user = session.get(User, user_id)
-        if user:
-            for key, value in kwargs.items():
-                setattr(user, key, value)
+        if not user:
+            return None
+        if username is not None:
+            user.username = username
+        if email is not None:
+            user.email = email
+        if role_id is not None:
+            user.role_id = role_id
+        try:
             session.commit()
-            session.refresh(user)
+        except IntegrityError as e:
+            session.rollback()
+            raise ValueError("Username или email уже занят") from e
+        session.refresh(user)
         return user
 
 def delete_user(user_id: int) -> bool:
@@ -196,13 +223,22 @@ def get_note(note_id: int) -> Note | None:
     with Session(engine) as session:
         return session.get(Note, note_id)
 
-def update_note(note_id: int, **kwargs) -> Note | None:
+def update_note(note_id: int, *, title=None, author=None, review=None) -> Note | None:
     with Session(engine) as session:
         note = session.get(Note, note_id)
         if note:
-            for key, value in kwargs.items():
-                setattr(note, key, value)
-            session.commit()
+            if title is not None:
+                note.title = title
+            if author is not None:
+                note.author = author
+            if review is not None:
+                note.review = review
+            try:
+                session.commit()
+            except IntegrityError as e:
+                session.rollback()
+                raise ValueError("Не удалось обновить заметку") from e
+        
             session.refresh(note)
         return note
 
@@ -243,7 +279,15 @@ def create_subscription(user_id: int, list_id: int) -> Subscription:
     with Session(engine) as session:
         sub = Subscription(user_id=user_id, list_id=list_id)
         session.add(sub)
-        session.commit()
+        try:
+            session.commit()
+        except  IntegrityError()as e:
+                session.rollback()
+                msg = str(e.orig)
+                if "subscriptions_pkey" in msg:
+                    raise ValueError(f"Пользователь уже подписан на этот список") from e
+                raise ValueError(f"Пользователь или список не сущ-т") from e
+        session.refresh(sub)
         return sub
 
 def get_subscription(user_id: int, list_id: int) -> Subscription | None:
