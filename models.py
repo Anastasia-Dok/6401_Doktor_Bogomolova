@@ -85,7 +85,10 @@ class Subscription(Base):
     list_id: Mapped[int] = mapped_column (ForeignKey('lists.list_id'), primary_key=True)
 
     # Индексы
-
+    __table_args__ = (
+        Index('idx_subscriptions_user_id', 'user_id'),
+        Index('idx_subscriptions_list_id', 'list_id'),
+    )
     user: Mapped["User"] = relationship(back_populates="subscriptions")
     list: Mapped["Lists"] = relationship(back_populates="subscriptions")
 
