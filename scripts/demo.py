@@ -1,4 +1,4 @@
-from crud import (
+from app.crud import (
     get_role, update_role, delete_role, get_all_users_with_role,
     get_user_by_id, get_user_by_email, get_user_by_username, update_user, delete_user,
     get_list, get_all_lists, update_list, delete_list,

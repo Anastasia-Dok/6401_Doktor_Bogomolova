@@ -1,16 +1,16 @@
 # db.py
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from models import Base
+from app.models import Base
+from app.config import settings
 
 
 DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/rec_db"
-
+engine = create_engine(settings.database_url, echo=settings.debug)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 #создаёт движок -  объект, который управляет подключением к базе данных.
 #Создаёт пул соединений,Загружает драйвер
-engine = create_engine(DATABASE_URL) 
-               # создаёт новые сессии при каждом вызове
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 def init_db():
     """Создает таблицы в базе данных"""

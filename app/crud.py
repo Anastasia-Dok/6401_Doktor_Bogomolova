@@ -1,9 +1,9 @@
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload, joinedload
-from data_base.db import engine
-from models import Base, Role, User, Lists, Note, Subscription
-from security import hash_password
+from app.db import engine
+from app.models import Base, Role, User, Lists, Note, Subscription
+from app.security import hash_password
 from sqlalchemy.exc import IntegrityError
 
 # ---------- CRUD для Role ----------
