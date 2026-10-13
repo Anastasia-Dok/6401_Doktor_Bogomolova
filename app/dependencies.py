@@ -10,7 +10,7 @@ from app.security import decode_token
 
 
 # Swagger UI узнаёт, что токен получается через /login
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
 def get_db() -> Generator[Session, None, None]:
