@@ -23,6 +23,10 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 60
 
+     # gRPC
+    grpc_host: str = "localhost"
+    grpc_port: int = 50051
+
 
 
 settings = Settings()

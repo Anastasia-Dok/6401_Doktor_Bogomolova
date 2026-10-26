@@ -8,3 +8,5 @@ python-jose[cryptography]
 python-multipart
 pydantic[email]
 pydantic-settings
+grpcio>=1.60
+grpcio-tools>=1.60

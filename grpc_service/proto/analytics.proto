@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package analytics;
+
+message Empty {}
+
+message Summary {
+  int32 users = 1;
+  int32 lists = 2;
+  int32 notes = 3;
+  int32 subscriptions = 4;
+}
+
+message ListStat {
+  int32 list_id = 1;
+  string title = 2;
+  int32 notes_count = 3;
+  int32 subscribers_count = 4;
+}
+
+message TopListsRequest {
+  int32 limit = 1;
+}
+
+message TopListsResponse {
+  repeated ListStat lists = 1;
+}
+
+message UserStat {
+  int32 user_id = 1;
+  string username = 2;
+  string email = 3;
+  int32 notes_count = 4;
+}
+
+message TopUsersRequest {
+  int32 limit = 1;
+}
+
+message TopUsersResponse {
+  repeated UserStat users = 1;
+}
+
+message AuthorStat {
+  string author = 1;
+  int32 mentions = 2;
+}
+
+message TopAuthorsRequest {
+  int32 limit = 1;
+}
+
+message TopAuthorsResponse {
+  repeated AuthorStat authors = 1;
+}
+
+service AnalyticsService {
+  rpc GetSummary (Empty) returns (Summary);
+  rpc GetTopLists (TopListsRequest) returns (TopListsResponse);
+  rpc GetTopUsers (TopUsersRequest) returns (TopUsersResponse);
+  rpc GetTopAuthors (TopAuthorsRequest) returns (TopAuthorsResponse);
+}

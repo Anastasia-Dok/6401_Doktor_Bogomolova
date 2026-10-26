@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from app.routers import auth, users, lists, notes, subscriptions
+from app.routers import auth, users, lists, notes, subscriptions, analytics
 
 app = FastAPI(
     title="Recommendations API",
@@ -22,6 +22,8 @@ app.include_router(lists.admin_router, prefix="/api/v1")
 # notes, subscriptions — по токену
 app.include_router(notes.router, prefix="/api/v1")
 app.include_router(subscriptions.router, prefix="/api/v1")
+
+app.include_router(analytics.router, prefix="/api/v1")
 
 
 @app.get("/health", tags=["meta"])
