@@ -126,27 +126,28 @@ class Token(BaseModel):
     token_type: str = "bearer" #без шифрований
 
     # ============ ANALYTICS ============
+#общая сводка
 class SummaryOut(BaseModel):
     users: int
     lists: int
     notes: int
     subscriptions: int
 
-
+#топ списков по количеству заметок
 class TopListsOut(BaseModel):
     list_id: int
     title: str
     notes_count: int
     subscribers_count: int
 
-
+#топ пользователей по количеству заметок
 class TopUsersOut(BaseModel):
     user_id: int
     username: str
     email: str
     notes_count: int
 
-
+#топ авторов по количеству упоминаний
 class TopAuthorsOut(BaseModel):
     author: str
     mentions: int

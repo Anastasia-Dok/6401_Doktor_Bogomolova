@@ -5,11 +5,7 @@ from app import crud, schemas
 from app.dependencies import get_db, get_current_user, require_admin
 
 # Чтение доступно любому аутентифицированному пользователю
-router = APIRouter(
-    prefix="/lists", 
-    tags=["lists"],
-    dependencies=[Depends(get_current_user)],
-    )
+router = APIRouter(prefix="/lists", tags=["lists"])
 
 # Изменение доступно только админу
 admin_router = APIRouter(

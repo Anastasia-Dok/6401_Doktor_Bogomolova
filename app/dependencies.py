@@ -1,4 +1,4 @@
-from typing import Generator
+
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -10,17 +10,19 @@ from app.security import decode_token
 
 
 # Swagger UI узнаёт, что токен получается через /login
+# встроенный в FastAPI класс. Реализует стандарт OAuth2 Password Flow.
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
-
-def get_db() -> Generator[Session, None, None]:
+def get_db() : 
     """Открывает сессию БД на каждый запрос и закрывает её после."""
-    db = SessionLocal()
+    db = SessionLocal() # ← SessionLocal → engine → пул соединений
     try:
-        yield db
+        yield db    # ← передаём в роутер
     finally:
-        db.close()
-
+        db.close()  # ← ПОСЛЕ роутера
+#yield — «отдать» db и приостановиться.
+#FastAPI получает db (объект Session) и передаёт в роутер
+#Роутер работает с db
 
 def get_current_user(
     token: str = Depends(oauth2_scheme),

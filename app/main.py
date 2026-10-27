@@ -7,8 +7,13 @@ app = FastAPI(
     version="1.0.0",
     description="ЛР2: FastAPI + JWT + PostgreSQL",
 )
+'''Создаёт ASGI-приложение.
+Готовит список маршрутов (пустой).
+Настраивает OpenAPI-генератор.
+Включает Swagger UI (по умолчанию на /docs).'''
 
 # auth — публичный
+#Добавляет все его эндпоинты в app.Префикс /api/v1 — добавляется к каждому пути
 app.include_router(auth.router, prefix="/api/v1")
 
 # users — /me публичный (по токену), админская часть отдельным роутером

@@ -177,6 +177,9 @@ def delete_note(db: Session, note_id: int) -> bool:
         return True
     return False
 
+def get_all_notes(db: Session, skip: int = 0, limit: int = 100) -> list[Note]:
+    stmt = select(Note).order_by(Note.note_id).offset(skip).limit(limit)
+    return db.scalars(stmt).all()
 
 def get_notes_by_user(db: Session, user_id: int) -> list[Note]:
     stmt = select(Note).where(Note.user_id == user_id).order_by(Note.note_id)

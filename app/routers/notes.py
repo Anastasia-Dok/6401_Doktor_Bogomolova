@@ -12,16 +12,30 @@ def _ensure_owner_or_admin(note_user_id: int, current_user) -> None:
     if note_user_id != current_user.user_id and current_user.role.name != ADMIN_ROLE_NAME:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
 
-
 @router.get("/", response_model=list[schemas.NoteOut])
 def read_notes(
+    list_id: int | None = None,
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
-    current_user: schemas.UserOut = Depends(get_current_user),
 ):
-    notes = crud.get_notes_by_user(db, user_id=current_user.user_id)
-    return notes[skip : skip + limit]
+    if list_id is not None:
+        return crud.get_notes_by_list(db, list_id=list_id)
+    return crud.get_all_notes(db, skip=skip, limit=limit)
+
+@router.get("/{note_id}", response_model=schemas.NoteOut)
+def read_note(
+    note_id: int,
+    db: Session = Depends(get_db),
+):
+    """Получить заметку по ID (публично)."""
+    note = crud.get_note(db, note_id=note_id)
+    if not note:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Note not found",
+        )
+    return note
 
 
 @router.post("/", response_model=schemas.NoteOut, status_code=status.HTTP_201_CREATED)

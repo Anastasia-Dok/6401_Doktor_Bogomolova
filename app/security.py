@@ -16,20 +16,23 @@ def verify_password(password: str, password_hash: str) -> bool:
     return bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8"))
 
 
-# ============ JWT ============
-def create_access_token(data: dict) -> str:
+# создаёт токен при логине
+def create_access_token(data: dict) -> str: #Принимает словарь — payload (что «положить внутрь» токена).
     """Создаёт JWT с payload и временем жизни."""
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + timedelta(
         minutes=settings.jwt_expire_minutes
     )
     to_encode.update({"exp": expire})
-    return jwt.encode(
+    return jwt.encode( # сам создаёт header, сериализует payload, считает подпись.
         to_encode,
         settings.jwt_secret,
         algorithm=settings.jwt_algorithm,
     )
-
+#Header — {"alg": "HS256", "typ": "JWT"} → base64url.
+#Payload — данные → JSON → base64url.
+#Signature — HMAC-SHA256(header.payload, SECRET_KEY).
+#Возвращает строку header.payload.signature.
 
 def decode_token(token: str) -> dict | None:
     """Проверяет подпись и срок действия JWT. None, если токен невалиден."""

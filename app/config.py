@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     debug: bool = False
 
     # JWT
-    jwt_secret: str
+    jwt_secret: str  # ← секрет для подписи
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 60
 
