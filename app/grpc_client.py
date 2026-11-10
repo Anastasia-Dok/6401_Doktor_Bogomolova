@@ -6,14 +6,15 @@ from app.config import settings
 
 
 def _get_stub():
-    channel = grpc.insecure_channel(f"{settings.grpc_host}:{settings.grpc_port}")
-    return analytics_pb2_grpc.AnalyticsServiceStub(channel)
+    #Создаёт канал (TCP-соединение) к gRPC-серверу.
+    channel = grpc.insecure_channel(f"{settings.grpc_host}:{settings.grpc_port}") 
+    return analytics_pb2_grpc.AnalyticsServiceStub(channel) # Создаёт клиентский stub — обёртку над каналом.
 
 
 def get_summary() -> dict:
     print("[FastAPI → gRPC] GetSummary")
-    stub = _get_stub()
-    response = stub.GetSummary(analytics_pb2.Empty())
+    stub = _get_stub() # Создаёт клиент.
+    response = stub.GetSummary(analytics_pb2.Empty()) # сериализация, HTTP/2, ожидание ответа, десериализация
     print(f"[gRPC → FastAPI] users={response.users}, notes={response.notes}")
     return {
         "users": response.users,

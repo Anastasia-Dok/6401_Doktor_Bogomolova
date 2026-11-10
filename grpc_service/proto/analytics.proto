@@ -1,23 +1,24 @@
-syntax = "proto3";
+syntax = "proto3"; //версия языка
 
-package analytics;
+package analytics; //пространство имен
 
-message Empty {}
+message Empty {} //передаем пустое сообщение если метод не требует параметров
 
+//Описывает ответ для метода GetSummary.
 message Summary {
   int32 users = 1;
   int32 lists = 2;
   int32 notes = 3;
   int32 subscriptions = 4;
 }
-
+//Описывает одну строку из топа списков.
 message ListStat {
   int32 list_id = 1;
   string title = 2;
   int32 notes_count = 3;
   int32 subscribers_count = 4;
 }
-
+// Клиент говорит, сколько записей он хочет (limit). Это входные данные.
 message TopListsRequest {
   int32 limit = 1;
 }
@@ -53,9 +54,11 @@ message TopAuthorsRequest {
 message TopAuthorsResponse {
   repeated AuthorStat authors = 1;
 }
-
+//Описывает интерфейс какие методы есть у сервиса
+//Из этого блока генерируется и сервер, и клиент.  
+//Из него сгенерируются классы AnalyticsServiceStub (клиент) и AnalyticsServiceServicer (сервер).
 service AnalyticsService {
-  rpc GetSummary (Empty) returns (Summary);
+  rpc GetSummary (Empty) returns (Summary); //объявление метода
   rpc GetTopLists (TopListsRequest) returns (TopListsResponse);
   rpc GetTopUsers (TopUsersRequest) returns (TopUsersResponse);
   rpc GetTopAuthors (TopAuthorsRequest) returns (TopAuthorsResponse);
