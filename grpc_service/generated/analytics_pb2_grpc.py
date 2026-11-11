@@ -26,7 +26,10 @@ if _version_not_supported:
 
 
 class AnalyticsServiceStub:
-    """Missing associated documentation comment in .proto file."""
+    """Описывает интерфейс какие методы есть у сервиса
+    Из этого блока генерируется и сервер, и клиент.  
+    Из него сгенерируются классы AnalyticsServiceStub (клиент) и AnalyticsServiceServicer (сервер).
+    """
 
     def __init__(self, channel):
         """Constructor.
@@ -39,28 +42,32 @@ class AnalyticsServiceStub:
                 request_serializer=analytics__pb2.Empty.SerializeToString,
                 response_deserializer=analytics__pb2.Summary.FromString,
                 _registered_method=True)
-        self.GetTopLists = channel.unary_unary(
+        self.GetTopLists = channel.unary_stream(
                 '/analytics.AnalyticsService/GetTopLists',
-                request_serializer=analytics__pb2.TopListsRequest.SerializeToString,
-                response_deserializer=analytics__pb2.TopListsResponse.FromString,
+                request_serializer=analytics__pb2.LimitRequest.SerializeToString,
+                response_deserializer=analytics__pb2.ListStat.FromString,
                 _registered_method=True)
-        self.GetTopUsers = channel.unary_unary(
+        self.GetTopUsers = channel.unary_stream(
                 '/analytics.AnalyticsService/GetTopUsers',
-                request_serializer=analytics__pb2.TopUsersRequest.SerializeToString,
-                response_deserializer=analytics__pb2.TopUsersResponse.FromString,
+                request_serializer=analytics__pb2.LimitRequest.SerializeToString,
+                response_deserializer=analytics__pb2.UserStat.FromString,
                 _registered_method=True)
-        self.GetTopAuthors = channel.unary_unary(
+        self.GetTopAuthors = channel.unary_stream(
                 '/analytics.AnalyticsService/GetTopAuthors',
-                request_serializer=analytics__pb2.TopAuthorsRequest.SerializeToString,
-                response_deserializer=analytics__pb2.TopAuthorsResponse.FromString,
+                request_serializer=analytics__pb2.LimitRequest.SerializeToString,
+                response_deserializer=analytics__pb2.AuthorStat.FromString,
                 _registered_method=True)
 
 
 class AnalyticsServiceServicer:
-    """Missing associated documentation comment in .proto file."""
+    """Описывает интерфейс какие методы есть у сервиса
+    Из этого блока генерируется и сервер, и клиент.  
+    Из него сгенерируются классы AnalyticsServiceStub (клиент) и AnalyticsServiceServicer (сервер).
+    """
 
     def GetSummary(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """объявление метода
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -91,20 +98,20 @@ def add_AnalyticsServiceServicer_to_server(servicer, server):
                     request_deserializer=analytics__pb2.Empty.FromString,
                     response_serializer=analytics__pb2.Summary.SerializeToString,
             ),
-            'GetTopLists': grpc.unary_unary_rpc_method_handler(
+            'GetTopLists': grpc.unary_stream_rpc_method_handler(
                     servicer.GetTopLists,
-                    request_deserializer=analytics__pb2.TopListsRequest.FromString,
-                    response_serializer=analytics__pb2.TopListsResponse.SerializeToString,
+                    request_deserializer=analytics__pb2.LimitRequest.FromString,
+                    response_serializer=analytics__pb2.ListStat.SerializeToString,
             ),
-            'GetTopUsers': grpc.unary_unary_rpc_method_handler(
+            'GetTopUsers': grpc.unary_stream_rpc_method_handler(
                     servicer.GetTopUsers,
-                    request_deserializer=analytics__pb2.TopUsersRequest.FromString,
-                    response_serializer=analytics__pb2.TopUsersResponse.SerializeToString,
+                    request_deserializer=analytics__pb2.LimitRequest.FromString,
+                    response_serializer=analytics__pb2.UserStat.SerializeToString,
             ),
-            'GetTopAuthors': grpc.unary_unary_rpc_method_handler(
+            'GetTopAuthors': grpc.unary_stream_rpc_method_handler(
                     servicer.GetTopAuthors,
-                    request_deserializer=analytics__pb2.TopAuthorsRequest.FromString,
-                    response_serializer=analytics__pb2.TopAuthorsResponse.SerializeToString,
+                    request_deserializer=analytics__pb2.LimitRequest.FromString,
+                    response_serializer=analytics__pb2.AuthorStat.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -115,7 +122,10 @@ def add_AnalyticsServiceServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class AnalyticsService:
-    """Missing associated documentation comment in .proto file."""
+    """Описывает интерфейс какие методы есть у сервиса
+    Из этого блока генерируется и сервер, и клиент.  
+    Из него сгенерируются классы AnalyticsServiceStub (клиент) и AnalyticsServiceServicer (сервер).
+    """
 
     @staticmethod
     def GetSummary(request,
@@ -155,12 +165,12 @@ class AnalyticsService:
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(
+        return grpc.experimental.unary_stream(
             request,
             target,
             '/analytics.AnalyticsService/GetTopLists',
-            analytics__pb2.TopListsRequest.SerializeToString,
-            analytics__pb2.TopListsResponse.FromString,
+            analytics__pb2.LimitRequest.SerializeToString,
+            analytics__pb2.ListStat.FromString,
             options,
             channel_credentials,
             insecure,
@@ -182,12 +192,12 @@ class AnalyticsService:
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(
+        return grpc.experimental.unary_stream(
             request,
             target,
             '/analytics.AnalyticsService/GetTopUsers',
-            analytics__pb2.TopUsersRequest.SerializeToString,
-            analytics__pb2.TopUsersResponse.FromString,
+            analytics__pb2.LimitRequest.SerializeToString,
+            analytics__pb2.UserStat.FromString,
             options,
             channel_credentials,
             insecure,
@@ -209,12 +219,12 @@ class AnalyticsService:
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(
+        return grpc.experimental.unary_stream(
             request,
             target,
             '/analytics.AnalyticsService/GetTopAuthors',
-            analytics__pb2.TopAuthorsRequest.SerializeToString,
-            analytics__pb2.TopAuthorsResponse.FromString,
+            analytics__pb2.LimitRequest.SerializeToString,
+            analytics__pb2.AuthorStat.FromString,
             options,
             channel_credentials,
             insecure,

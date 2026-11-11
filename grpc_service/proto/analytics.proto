@@ -11,22 +11,15 @@ message Summary {
   int32 notes = 3;
   int32 subscriptions = 4;
 }
-//Описывает одну строку из топа списков.
+// Один список в топе
 message ListStat {
   int32 list_id = 1;
   string title = 2;
   int32 notes_count = 3;
   int32 subscribers_count = 4;
 }
-// Клиент говорит, сколько записей он хочет (limit). Это входные данные.
-message TopListsRequest {
-  int32 limit = 1;
-}
 
-message TopListsResponse {
-  repeated ListStat lists = 1;
-}
-
+// Один пользователь в топе
 message UserStat {
   int32 user_id = 1;
   string username = 2;
@@ -34,32 +27,20 @@ message UserStat {
   int32 notes_count = 4;
 }
 
-message TopUsersRequest {
-  int32 limit = 1;
-}
-
-message TopUsersResponse {
-  repeated UserStat users = 1;
-}
-
+// Один автор в топе
 message AuthorStat {
   string author = 1;
   int32 mentions = 2;
 }
-
-message TopAuthorsRequest {
+message LimitRequest {
   int32 limit = 1;
-}
-
-message TopAuthorsResponse {
-  repeated AuthorStat authors = 1;
 }
 //Описывает интерфейс какие методы есть у сервиса
 //Из этого блока генерируется и сервер, и клиент.  
 //Из него сгенерируются классы AnalyticsServiceStub (клиент) и AnalyticsServiceServicer (сервер).
 service AnalyticsService {
   rpc GetSummary (Empty) returns (Summary); //объявление метода
-  rpc GetTopLists (TopListsRequest) returns (TopListsResponse);
-  rpc GetTopUsers (TopUsersRequest) returns (TopUsersResponse);
-  rpc GetTopAuthors (TopAuthorsRequest) returns (TopAuthorsResponse);
+  rpc GetTopLists (LimitRequest) returns (stream ListStat);
+  rpc GetTopUsers (LimitRequest) returns (stream UserStat);
+  rpc GetTopAuthors (LimitRequest) returns (stream AuthorStat);
 }

@@ -29,33 +29,27 @@ class AnalyticsServicer(analytics_pb2_grpc.AnalyticsServiceServicer):
         print(f"[gRPC] GetTopLists(limit={limit})")
         rows = get_top_lists_data(limit)
         print(f"[gRPC] Найдено списков: {len(rows)}")
-        return analytics_pb2.TopListsResponse(
-            lists=[
-                analytics_pb2.ListStat(**row)
-                for row in rows
-            ]
-        )
+        for row in rows:
+            yield analytics_pb2.ListStat(**row)
     #Для каждого row создаётся analytics_pb2.ListStat(**row) — protobuf-сообщение.
-    # lists=[...] — заполняет repeated-поле (массив).
-    # return — gRPC сериализует и отправляет.
+    # gRPC сериализует и отправляет.
 
     def GetTopUsers(self, request, context):
         limit = request.limit or 5
         print(f"[gRPC] GetTopUsers(limit={limit})")
         rows = get_top_users_data(limit)
         print(f"[gRPC] Найдено пользователей: {len(rows)}")
-        return analytics_pb2.TopUsersResponse(
-            users=[analytics_pb2.UserStat(**row) for row in rows]
-        )
+        for row in rows:
+            yield analytics_pb2.UserStat(**row)
+         
 
     def GetTopAuthors(self, request, context):
         limit = request.limit or 5
         print(f"[gRPC] GetTopAuthors(limit={limit})")
         rows = get_top_authors_data(limit)
         print(f"[gRPC] Найдено авторов: {len(rows)}")
-        return analytics_pb2.TopAuthorsResponse(
-            authors=[analytics_pb2.AuthorStat(**row) for row in rows]
-        )
+        for row in rows:
+            yield analytics_pb2.AuthorStat(**row)
 
 
 def serve():

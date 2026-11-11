@@ -25,38 +25,41 @@ def get_summary() -> dict:
 
 
 def get_top_lists(limit: int = 5) -> list[dict]:
-    print(f"[FastAPI → gRPC] GetTopLists(limit={limit})")
+    print(f"[FastAPI → gRPC] GetTopLists(limit={limit}) — stream")
     stub = _get_stub()
-    response = stub.GetTopLists(analytics_pb2.TopListsRequest(limit=limit))
-    print(f"[gRPC → FastAPI] получено {len(response.lists)} списков")
-    return [
-        {
-            "list_id": x.list_id,
-            "title": x.title,
-            "notes_count": x.notes_count,
-            "subscribers_count": x.subscribers_count,
-        }
-        for x in response.lists
-    ]
-
+    # Вызываем метод, передавая новый LimitRequest
+    stream = stub.GetTopLists(analytics_pb2.LimitRequest(limit=limit))
+    result = []
+    for item in stream:  # Читаем из потока
+        result.append({
+            "list_id": item.list_id,
+            "title": item.title,
+            "notes_count": item.notes_count,
+            "subscribers_count": item.subscribers_count,
+        })
+    print(f"[gRPC → FastAPI] получено {len(result)} списков (stream)")
+    return result
 
 def get_top_users(limit: int = 5) -> list[dict]:
-    print(f"[FastAPI → gRPC] GetTopUsers(limit={limit})")
+    print(f"[FastAPI → gRPC] GetTopUsers(limit={limit}) — stream")
     stub = _get_stub()
-    response = stub.GetTopUsers(analytics_pb2.TopUsersRequest(limit=limit))
-    return [
-        {
-            "user_id": u.user_id,
-            "username": u.username,
-            "email": u.email,
-            "notes_count": u.notes_count,
-        }
-        for u in response.users
-    ]
-
+    stream = stub.GetTopUsers(analytics_pb2.LimitRequest(limit=limit))
+    
+    result = []
+    for item in stream:
+        result.append({
+            "user_id": item.user_id,
+            "username": item.username,
+            "email": item.email,
+            "notes_count": item.notes_count,
+        })
+    return result
 
 def get_top_authors(limit: int = 5) -> list[dict]:
-    print(f"[FastAPI → gRPC] GetTopAuthors(limit={limit})")
+    print(f"[FastAPI → gRPC] GetTopAuthors(limit={limit}) — stream")
     stub = _get_stub()
-    response = stub.GetTopAuthors(analytics_pb2.TopAuthorsRequest(limit=limit))
-    return [{"author": a.author, "mentions": a.mentions} for a in response.authors]
+    stream = stub.GetTopAuthors(analytics_pb2.LimitRequest(limit=limit))
+    result = []
+    for i in stream:
+        result.append({"author": i.author, "mentions": i.mentions})
+    return result

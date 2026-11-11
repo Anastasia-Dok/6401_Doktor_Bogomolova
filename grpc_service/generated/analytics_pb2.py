@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0f\x61nalytics.proto\x12\tanalytics\"\x07\n\x05\x45mpty\"M\n\x07Summary\x12\r\n\x05users\x18\x01 \x01(\x05\x12\r\n\x05lists\x18\x02 \x01(\x05\x12\r\n\x05notes\x18\x03 \x01(\x05\x12\x15\n\rsubscriptions\x18\x04 \x01(\x05\"Z\n\x08ListStat\x12\x0f\n\x07list_id\x18\x01 \x01(\x05\x12\r\n\x05title\x18\x02 \x01(\t\x12\x13\n\x0bnotes_count\x18\x03 \x01(\x05\x12\x19\n\x11subscribers_count\x18\x04 \x01(\x05\" \n\x0fTopListsRequest\x12\r\n\x05limit\x18\x01 \x01(\x05\"6\n\x10TopListsResponse\x12\"\n\x05lists\x18\x01 \x03(\x0b\x32\x13.analytics.ListStat\"Q\n\x08UserStat\x12\x0f\n\x07user_id\x18\x01 \x01(\x05\x12\x10\n\x08username\x18\x02 \x01(\t\x12\r\n\x05\x65mail\x18\x03 \x01(\t\x12\x13\n\x0bnotes_count\x18\x04 \x01(\x05\" \n\x0fTopUsersRequest\x12\r\n\x05limit\x18\x01 \x01(\x05\"6\n\x10TopUsersResponse\x12\"\n\x05users\x18\x01 \x03(\x0b\x32\x13.analytics.UserStat\".\n\nAuthorStat\x12\x0e\n\x06\x61uthor\x18\x01 \x01(\t\x12\x10\n\x08mentions\x18\x02 \x01(\x05\"\"\n\x11TopAuthorsRequest\x12\r\n\x05limit\x18\x01 \x01(\x05\"<\n\x12TopAuthorsResponse\x12&\n\x07\x61uthors\x18\x01 \x03(\x0b\x32\x15.analytics.AuthorStat2\xa4\x02\n\x10\x41nalyticsService\x12\x32\n\nGetSummary\x12\x10.analytics.Empty\x1a\x12.analytics.Summary\x12\x46\n\x0bGetTopLists\x12\x1a.analytics.TopListsRequest\x1a\x1b.analytics.TopListsResponse\x12\x46\n\x0bGetTopUsers\x12\x1a.analytics.TopUsersRequest\x1a\x1b.analytics.TopUsersResponse\x12L\n\rGetTopAuthors\x12\x1c.analytics.TopAuthorsRequest\x1a\x1d.analytics.TopAuthorsResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0f\x61nalytics.proto\x12\tanalytics\"\x07\n\x05\x45mpty\"M\n\x07Summary\x12\r\n\x05users\x18\x01 \x01(\x05\x12\r\n\x05lists\x18\x02 \x01(\x05\x12\r\n\x05notes\x18\x03 \x01(\x05\x12\x15\n\rsubscriptions\x18\x04 \x01(\x05\"Z\n\x08ListStat\x12\x0f\n\x07list_id\x18\x01 \x01(\x05\x12\r\n\x05title\x18\x02 \x01(\t\x12\x13\n\x0bnotes_count\x18\x03 \x01(\x05\x12\x19\n\x11subscribers_count\x18\x04 \x01(\x05\"Q\n\x08UserStat\x12\x0f\n\x07user_id\x18\x01 \x01(\x05\x12\x10\n\x08username\x18\x02 \x01(\t\x12\r\n\x05\x65mail\x18\x03 \x01(\t\x12\x13\n\x0bnotes_count\x18\x04 \x01(\x05\".\n\nAuthorStat\x12\x0e\n\x06\x61uthor\x18\x01 \x01(\t\x12\x10\n\x08mentions\x18\x02 \x01(\x05\"\x1d\n\x0cLimitRequest\x12\r\n\x05limit\x18\x01 \x01(\x05\x32\x87\x02\n\x10\x41nalyticsService\x12\x32\n\nGetSummary\x12\x10.analytics.Empty\x1a\x12.analytics.Summary\x12=\n\x0bGetTopLists\x12\x17.analytics.LimitRequest\x1a\x13.analytics.ListStat0\x01\x12=\n\x0bGetTopUsers\x12\x17.analytics.LimitRequest\x1a\x13.analytics.UserStat0\x01\x12\x41\n\rGetTopAuthors\x12\x17.analytics.LimitRequest\x1a\x15.analytics.AuthorStat0\x01\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -37,22 +37,12 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_SUMMARY']._serialized_end=116
   _globals['_LISTSTAT']._serialized_start=118
   _globals['_LISTSTAT']._serialized_end=208
-  _globals['_TOPLISTSREQUEST']._serialized_start=210
-  _globals['_TOPLISTSREQUEST']._serialized_end=242
-  _globals['_TOPLISTSRESPONSE']._serialized_start=244
-  _globals['_TOPLISTSRESPONSE']._serialized_end=298
-  _globals['_USERSTAT']._serialized_start=300
-  _globals['_USERSTAT']._serialized_end=381
-  _globals['_TOPUSERSREQUEST']._serialized_start=383
-  _globals['_TOPUSERSREQUEST']._serialized_end=415
-  _globals['_TOPUSERSRESPONSE']._serialized_start=417
-  _globals['_TOPUSERSRESPONSE']._serialized_end=471
-  _globals['_AUTHORSTAT']._serialized_start=473
-  _globals['_AUTHORSTAT']._serialized_end=519
-  _globals['_TOPAUTHORSREQUEST']._serialized_start=521
-  _globals['_TOPAUTHORSREQUEST']._serialized_end=555
-  _globals['_TOPAUTHORSRESPONSE']._serialized_start=557
-  _globals['_TOPAUTHORSRESPONSE']._serialized_end=617
-  _globals['_ANALYTICSSERVICE']._serialized_start=620
-  _globals['_ANALYTICSSERVICE']._serialized_end=912
+  _globals['_USERSTAT']._serialized_start=210
+  _globals['_USERSTAT']._serialized_end=291
+  _globals['_AUTHORSTAT']._serialized_start=293
+  _globals['_AUTHORSTAT']._serialized_end=339
+  _globals['_LIMITREQUEST']._serialized_start=341
+  _globals['_LIMITREQUEST']._serialized_end=370
+  _globals['_ANALYTICSSERVICE']._serialized_start=373
+  _globals['_ANALYTICSSERVICE']._serialized_end=636
 # @@protoc_insertion_point(module_scope)
