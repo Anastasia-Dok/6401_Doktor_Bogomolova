@@ -10,3 +10,5 @@ pydantic[email]
 pydantic-settings
 grpcio>=1.60
 grpcio-tools>=1.60
+aio-pika>=9.4
+websockets>=12.0

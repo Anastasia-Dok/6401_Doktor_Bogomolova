@@ -7,6 +7,34 @@ from app.dependencies import get_db, get_current_user
 router = APIRouter(prefix="/notes", tags=["notes"])
 
 ADMIN_ROLE_NAME = "admin" 
+from app.messaging import publish_event
+
+@router.post("/", response_model=schemas.NoteOut, status_code=status.HTTP_201_CREATED)
+def create_note(
+    note: schemas.NoteCreate,
+    db: Session = Depends(get_db),
+    current_user: schemas.UserOut = Depends(get_current_user),
+):
+    created = crud.create_note(
+        db,
+        user_id=current_user.user_id,
+        list_id=note.list_id,
+        title=note.title,
+        author=note.author,
+        review=note.review,
+    )
+    publish_event(
+        "note.created",
+        {
+            "note_id": created.note_id,
+            "list_id": created.list_id,
+            "user_id": current_user.user_id,
+            "username": current_user.username,
+            "title": created.title,
+            "author": created.author,
+        },
+    )
+    return created
 
 def _ensure_owner_or_admin(note_user_id: int, current_user) -> None:
     if note_user_id != current_user.user_id and current_user.role.name != ADMIN_ROLE_NAME:

@@ -1,12 +1,20 @@
 from fastapi import FastAPI
-
 from app.routers import auth, users, lists, notes, subscriptions, analytics
+from contextlib import asynccontextmanager
+from app.messaging import publisher
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    publisher.start()
+    yield
+    publisher.shutdown()
 
 app = FastAPI(
     title="Recommendations API",
     version="1.0.0",
-    description="ЛР2: FastAPI + JWT + PostgreSQL",
+    description="ЛР2–4: FastAPI + JWT + PostgreSQL + gRPC + RabbitMQ",
 )
+
 '''Создаёт ASGI-приложение.
 Готовит список маршрутов (пустой).
 Настраивает OpenAPI-генератор.

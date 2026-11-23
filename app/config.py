@@ -26,6 +26,12 @@ class Settings(BaseSettings):
      # gRPC
     grpc_host: str = "localhost"
     grpc_port: int = 50051
+    
+    # RabbitMQ
+    rabbitmq_url: str = "amqp://guest:guest@localhost:5672/"
+    rabbitmq_exchange: str = "events"
+    rabbitmq_queue: str = "notifications"
+    rabbitmq_publish_timeout: float = 2.0  # сек, чтобы API не зависал, если брокер лежит
 
 
 
