@@ -35,19 +35,6 @@ def read_subscriptions(
     return crud.get_user_subscriptions(db, user_id=current_user.user_id)
 
 
-@router.post("/", response_model=schemas.SubscriptionOut, status_code=status.HTTP_201_CREATED)
-def create_subscription(
-    sub: schemas.SubscriptionCreate,
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
-):
-    """Оформить подписку."""
-    try:
-        return crud.create_subscription(
-            db, user_id=current_user.user_id, list_id=sub.list_id
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.delete("/{list_id}", status_code=status.HTTP_204_NO_CONTENT)

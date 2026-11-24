@@ -13,6 +13,7 @@ app = FastAPI(
     title="Recommendations API",
     version="1.0.0",
     description="ЛР2–4: FastAPI + JWT + PostgreSQL + gRPC + RabbitMQ",
+    lifespan=lifespan,
 )
 
 '''Создаёт ASGI-приложение.

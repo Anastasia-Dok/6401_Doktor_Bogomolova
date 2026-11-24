@@ -66,22 +66,6 @@ def read_note(
     return note
 
 
-@router.post("/", response_model=schemas.NoteOut, status_code=status.HTTP_201_CREATED)
-def create_note(
-    note: schemas.NoteCreate,
-    db: Session = Depends(get_db),
-    current_user: schemas.UserOut = Depends(get_current_user),
-):
-    return crud.create_note(
-        db,
-        user_id=current_user.user_id,
-        list_id=note.list_id,
-        title=note.title,
-        author=note.author,
-        review=note.review,
-    )
-
-
 @router.patch("/{note_id}", response_model=schemas.NoteOut)
 def update_note(
     note_id: int,
