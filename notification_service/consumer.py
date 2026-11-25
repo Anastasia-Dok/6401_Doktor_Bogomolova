@@ -1,6 +1,6 @@
 """Consumer RabbitMQ: получает события и рассылает подписчикам."""
 import asyncio
-import json
+import pickle
 import logging
 from sqlalchemy import select
 
@@ -40,9 +40,9 @@ def _format_subscription_created(event: dict) -> dict:
 async def _handle(message: aio_pika.abc.AbstractIncomingMessage) -> None:
     async with message.process():  # ack/nack
         try:
-            event = json.loads(message.body)
-        except json.JSONDecodeError:
-            logger.error("Невалидный JSON: %r", message.body[:200])
+            event = pickle.loads(message.body)
+        except pickle.UnpicklingError:
+            logger.error("Невалидный PICKLE: %r", message.body[:200])
             return
 
         etype = event.get("event_type")
@@ -72,9 +72,14 @@ async def _handle(message: aio_pika.abc.AbstractIncomingMessage) -> None:
             notification = _format_note_created(event)
             
             for sub_id in subscribers:
-                if sub_id != author_id:
-                    await manager.send_to_user(sub_id, notification)
-                    logger.info("  - Отправлено user_id=%s", sub_id)
+                if sub_id == author_id:
+                    continue
+
+                sent = await manager.send_to_user(sub_id, notification)
+                if sent:
+                    logger.info("  - Доставлено user_id=%s (сокетов: %d)", sub_id, sent)
+                else:
+                    logger.info("  - user_id=%s оффлайн (уведомление не получено клиентом)", sub_id)
 
 async def run_consumer(stop_event: asyncio.Event) -> None:
      #подключаемся к RabbitMQ с авто-переподключением при обрыве

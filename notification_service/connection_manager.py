@@ -1,32 +1,51 @@
 """Реестр активных WS-подключений. Один пользователь = N сокетов (вкладки/устройства)."""
 import logging
 from collections import defaultdict
-from fastapi import WebSocket
+import pickle
 
 logger = logging.getLogger(__name__)
 
 
 class ConnectionManager:
     def __init__(self) -> None:
-        self.active: dict[int, set[WebSocket]] = defaultdict(set)
+        # user_id -> множество открытых сокетов этого пользователя.
+        # defaultdict(set): при обращении к active[user_id] для ещё не
+        # встречавшегося user_id автоматически создаётся пустое множество.
+        self.active: dict[int, set] = defaultdict(set)
 
-    def disconnect(self, user_id: int, ws: WebSocket) -> None:
-        self.active[user_id].discard(ws) #Закрываем соединение (как remote)
-        if not self.active[user_id]: #Если у пользователя не осталось сокетов, то удаляем ключ целиком
+    def disconnect(self, user_id: int, ws) -> None:
+        """Убрать сокет из реестра (безопасно вызывать повторно)."""
+        # .discard() не бросает KeyError, если сокета там уже нет
+        self.active[user_id].discard(ws)
+        # Если у пользователя больше нет открытых сокетов — чистим ключ,
+        # чтобы словарь не разрастался пустыми множествами.
+        if not self.active[user_id]:
             self.active.pop(user_id, None)
         logger.info("[WS] user=%s отключён", user_id)
+        
+    async def send_to_user(self, user_id: int, message: dict) -> int:
+        """Разослать сообщение во все открытые сокеты пользователя.
 
-    async def send_to_user(self, user_id: int, message: dict) -> None: #dict в  json и отправляем на каждый сокет пользователя
-        for ws in list(self.active.get(user_id, ())):
+        Ошибка на одном сокете не должна ломать рассылку в остальные:
+        неудачные сокеты просто выкидываем из реестра.
+        """
+        sockets = list(self.active.get(user_id, ()))
+        if not sockets:
+            return 0
+
+        payload = pickle.dumps(message)
+        sent_count = 0
+
+        for ws in sockets:
             try:
-                await ws.send_json(message)
+                await ws.send(payload)
+                sent_count += 1
             except Exception as e:
-                logger.warning("send user=%s: %s", user_id, e)
+                logger.warning(" - Ошибка отправки =%s: %s", user_id, e)
                 self.disconnect(user_id, ws)
 
-    async def broadcast(self, message: dict) -> None: #Рассылка всем пользователям
-        for user_id in list(self.active.keys()):
-            await self.send_to_user(user_id, message)
+        return sent_count
+       
 
     @property
     def total_connections(self) -> int:

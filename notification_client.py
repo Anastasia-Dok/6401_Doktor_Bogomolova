@@ -1,6 +1,6 @@
 """Клиент: держит WS-соединение, печатает уведомления."""
 import asyncio
-import json # по WebSocket можно передавать только текст или байты
+import pickle
 import sys
 
 import websockets
@@ -16,12 +16,12 @@ async def listen(user_id: int):
 
         # 2. Передача данных: шлем свой ID
         auth_data = {"user_id": user_id}
-        await ws.send(json.dumps(auth_data)) #ждём завершения рукопожатия
+        await ws.send(pickle.dumps(auth_data)) #ждём завершения рукопожатия
         print(f"[*] Отправил свой ID ({user_id}). Жду уведомления...\n")
 
         # 3. Читаем уведомления
         async for message in ws:
-            data = json.loads(message)
+            data = pickle.loads(message)
             if data.get("type") == "notification":
                 print(f" [{data['event']}] {data['text']}")
 

@@ -1,6 +1,6 @@
 """Producer RabbitMQ с синхронным фасадом для вызова из def-роутеров."""
 import asyncio
-import json
+import pickle
 import logging
 import threading
 from datetime import datetime, timezone
@@ -62,8 +62,8 @@ class _Publisher: #не для импорта напрямую
         #Готовим корутину для публикации
         coro = self._exchange.publish(
             aio_pika.Message(
-                body=json.dumps(message, ensure_ascii=False).encode(),
-                content_type="application/json",
+                body=pickle.dumps(message),
+                content_type="application/python-pickle",
                 delivery_mode=aio_pika.DeliveryMode.PERSISTENT,  # переживёт рестарт брокера
             ),
             routing_key="",  # для fanout не важен

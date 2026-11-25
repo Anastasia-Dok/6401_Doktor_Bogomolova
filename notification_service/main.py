@@ -1,6 +1,6 @@
 """Notification Service: FastAPI + WebSocket + consumer."""
 import asyncio
-import json
+import pickle
 import logging
 
 import websockets
@@ -25,9 +25,9 @@ async def ws_handler(websocket) -> None:
 
     user_id = None
     try:
-        # ЭТАП 2: ждём первое сообщение — JSON с user_id
+        #  ждём первое сообщение — JSON с user_id
         auth_message = await websocket.recv()
-        auth_data = json.loads(auth_message)
+        auth_data = pickle.loads(auth_message)
         user_id = auth_data.get("user_id")
 
         if not user_id:
@@ -47,14 +47,15 @@ async def ws_handler(websocket) -> None:
 
     except ConnectionClosed:
         pass
-    except json.JSONDecodeError as e:
-        logger.warning("[WS] некорректный JSON от %s: %s", peer, e)
+    except pickle.UnpicklingError as e:
+        logger.warning("[WS] некорректный PICKLE от %s: %s", peer, e)
     finally:
         if user_id:
             manager.disconnect(user_id, websocket)
             logger.info("[WS] Пользователь %s отключился.", user_id)
 
 async def main() -> None:
+    #асинхронный «флажок» остановки stop
     stop = asyncio.Event()
 
     # Consumer RabbitMQ — фоновая задача
@@ -77,10 +78,11 @@ async def main() -> None:
     finally:
         stop.set()
         try:
-            await consumer_task
+            await consumer_task 
+            #дожидаемся, пока consumer отпишется от очереди и закроет соединение с RabbitMQ
         except asyncio.CancelledError:
             pass
-        server.close()
+        server.close() 
         await server.wait_closed()
         logger.info("Notification Service остановлен")
 
