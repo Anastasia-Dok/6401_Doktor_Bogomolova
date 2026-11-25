@@ -1,0 +1,101 @@
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
+from app import crud, schemas
+from app.dependencies import get_db, get_current_user
+
+router = APIRouter(prefix="/notes", tags=["notes"])
+
+ADMIN_ROLE_NAME = "admin" 
+from app.messaging import publish_event
+
+@router.post("/", response_model=schemas.NoteOut, status_code=status.HTTP_201_CREATED)
+def create_note(
+    note: schemas.NoteCreate,
+    db: Session = Depends(get_db),
+    current_user: schemas.UserOut = Depends(get_current_user),
+):
+    created = crud.create_note(
+        db,
+        user_id=current_user.user_id,
+        list_id=note.list_id,
+        title=note.title,
+        author=note.author,
+        review=note.review,
+    )
+    subscribers = crud.get_list_subscribers(db, created.list_id)
+    subscriber_ids = [u.user_id for u in subscribers] #Проходим по каждому объекту User и берем только его user_id.
+    publish_event(
+        "note.created",
+        {
+            "note_id": created.note_id,
+            "list_id": created.list_id,
+            "user_id": current_user.user_id,
+            "username": current_user.username,
+            "title": created.title,
+            "author": created.author,
+            "subscribers": subscriber_ids,
+        },
+    )
+    return created
+
+def _ensure_owner_or_admin(note_user_id: int, current_user) -> None:
+    if note_user_id != current_user.user_id and current_user.role.name != ADMIN_ROLE_NAME:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+
+@router.get("/", response_model=list[schemas.NoteOut])
+def read_notes(
+    list_id: int | None = None,
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+):
+    if list_id is not None:
+        return crud.get_notes_by_list(db, list_id=list_id)
+    return crud.get_all_notes(db, skip=skip, limit=limit)
+
+@router.get("/{note_id}", response_model=schemas.NoteOut)
+def read_note(
+    note_id: int,
+    db: Session = Depends(get_db),
+):
+    """Получить заметку по ID (публично)."""
+    note = crud.get_note(db, note_id=note_id)
+    if not note:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Note not found",
+        )
+    return note
+
+
+@router.patch("/{note_id}", response_model=schemas.NoteOut)
+def update_note(
+    note_id: int,
+    note_update: schemas.NoteUpdate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    note = crud.get_note(db, note_id=note_id)
+    if not note:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Note not found")
+    _ensure_owner_or_admin(note.user_id, current_user)
+    data = note_update.model_dump(exclude_unset=True)
+    updated = crud.update_note(db, note_id=note_id, **data)
+    return updated
+
+
+
+@router.delete("/{note_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_note(
+    note_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Удалить заметку. Только автор или админ."""
+    note = crud.get_note(db, note_id=note_id)
+    if not note:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Note not found")
+    _ensure_owner_or_admin(note.user_id, current_user)
+    crud.delete_note(db, note_id=note_id)
+    return None

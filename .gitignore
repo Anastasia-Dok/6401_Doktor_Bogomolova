@@ -1,0 +1,13 @@
+# Секреты
+.env
+
+# venv
+venv/
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+
+#структура проекта
+repomix-output.xml

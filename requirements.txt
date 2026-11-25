@@ -1,0 +1,14 @@
+fastapi>=0.110
+uvicorn[standard]
+gunicorn
+sqlalchemy>=2.0
+psycopg2-binary
+bcrypt
+python-jose[cryptography]
+python-multipart
+pydantic[email]
+pydantic-settings
+grpcio>=1.60
+grpcio-tools>=1.60
+aio-pika>=9.4
+websockets>=12.0

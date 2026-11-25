@@ -1,5 +1,5 @@
-from db import init_db
-from crud import (
+from app.db import init_db
+from app.crud import (
     create_role,
     create_user,
     create_list,
