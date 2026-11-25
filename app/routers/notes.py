@@ -23,6 +23,8 @@ def create_note(
         author=note.author,
         review=note.review,
     )
+    subscribers = crud.get_list_subscribers(db, created.list_id)
+    subscriber_ids = [u.user_id for u in subscribers] #Проходим по каждому объекту User и берем только его user_id.
     publish_event(
         "note.created",
         {
@@ -32,6 +34,7 @@ def create_note(
             "username": current_user.username,
             "title": created.title,
             "author": created.author,
+            "subscribers": subscriber_ids,
         },
     )
     return created
