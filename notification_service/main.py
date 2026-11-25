@@ -1,11 +1,12 @@
 """Notification Service: FastAPI + WebSocket + consumer."""
 import asyncio
+import json
 import logging
-from contextlib import asynccontextmanager
-import  json
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+import websockets
+from websockets.exceptions import ConnectionClosed
 
+from notification_service.config import settings
 from notification_service.connection_manager import manager
 from notification_service.consumer import run_consumer
 
@@ -13,60 +14,78 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 logger = logging.getLogger(__name__)
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    stop = asyncio.Event() #создаем «флажок», который скажет consumer'у, когда пора остановиться.
-    #Запускаем run_consumer как фоновую задачу.
-    # create_task позволяет ей работать параллельно с основным приложением (приемом WebSocket'ов). 
-    # Мы передаем ей stop, чтобы она знала, когда остановиться.
-    task = asyncio.create_task(run_consumer(stop))
-    logger.info("Notification Service запущен")
-    try:
-        yield #На yield функция lifespan приостанавливается и ждет сигнала на остановку
-    finally: #этот блок выполнится только тогда, когда сервер будет останавливаться
-        stop.set() #выставляем флажок stop. Consumer увидит это и корректно закроет соединение с RabbitMQ.
-        await task #Ждем, пока consumer действительно завершит работу
-        logger.info("Notification Service остановлен")
 
+async def ws_handler(websocket) -> None:
+    """Обработчик одного WS-подключения.
+    Путь (например, /ws) библиотека не проверяет, хендлер зовётся
+    для любого пути.
+    """
+    peer = getattr(websocket, "remote_address", "?")
+    logger.info("[WS] Клиент подключился: %s", peer)
 
-app = FastAPI(title="Notification Service", lifespan=lifespan)
-#Создаем приложение FastAPI и привязываем к нему наш lifespan
-
-@app.websocket("/ws") #Регистрируем эндпоинт /ws
-#websocket — объект для общения с конкретным клиентом.
-async def ws_endpoint(websocket: WebSocket):
-    await websocket.accept() # ЭТАП 1: Соединение установлено (просто по порту)
-    print("[WS] Клиент подключился.")
-    
     user_id = None
     try:
-        # ЭТАП 2: Получаем данные (ID пользователя)
-        auth_message = await websocket.receive_text() #Ждем первое сообщение от клиента. 
-        #Программа замирает, пока клиент не пришлет хоть какие-то данные 
+        # ЭТАП 2: ждём первое сообщение — JSON с user_id
+        auth_message = await websocket.recv()
         auth_data = json.loads(auth_message)
         user_id = auth_data.get("user_id")
-        
+
         if not user_id:
-            await websocket.close(code=1008)
+            await websocket.close(code=1008, reason="user_id required")
             return
 
-        # Регистрируем сокет в менеджере под этим ID
-        #мы добавляем этот сокет в словарь manager.active под ключом user_id. Теперь, 
-        #когда из RabbitMQ придет уведомление для этого пользователя,
-        #manager найдет его сокет и отправит сообщение.
+        # Регистрируем сокет в общем реестре под этим ID
         manager.active[user_id].add(websocket)
-        print(f"[WS] Пользователь {user_id} авторизован и готов получать уведомления.")
+        logger.info(
+            "[WS] Пользователь %s авторизован и готов получать уведомления.",
+            user_id,
+        )
 
-        # ЭТАП 3: Держим соединение открытым
-        while True:
-            await websocket.receive_text() # ждем пинги
-    except WebSocketDisconnect: # Если клиент отключился, выбрасывается это исключение
-        #Если user_id был известен (то есть клиент успел авторизоваться), удаляем его сокет из manager.active
+        # ЭТАП 3: держим соединение открытым, читаем всё, что шлёт клиент
+        async for _ in websocket:
+            pass  # клиент может слать пинги — нам всё равно
+
+    except ConnectionClosed:
+        pass
+    except json.JSONDecodeError as e:
+        logger.warning("[WS] некорректный JSON от %s: %s", peer, e)
+    finally:
         if user_id:
             manager.disconnect(user_id, websocket)
-            print(f"[WS] Пользователь {user_id} отключился.")
+            logger.info("[WS] Пользователь %s отключился.", user_id)
 
+async def main() -> None:
+    stop = asyncio.Event()
 
-@app.get("/health")
-def health():
-    return {"status": "ok", "connections": manager.total_connections} #с количеством активных подключений
+    # Consumer RabbitMQ — фоновая задача
+    consumer_task = asyncio.create_task(run_consumer(stop))
+
+    # Собственно WS-сервер
+    server = await websockets.serve(
+        ws_handler,
+        settings.ws_host,
+        settings.ws_port,
+    )
+    logger.info(
+        "Notification Service запущен: WS на ws://%s:%s",
+        settings.ws_host,
+        settings.ws_port,
+    )
+
+    try:
+        await asyncio.Future()  # крутимся вечно
+    finally:
+        stop.set()
+        try:
+            await consumer_task
+        except asyncio.CancelledError:
+            pass
+        server.close()
+        await server.wait_closed()
+        logger.info("Notification Service остановлен")
+
+if __name__ == "__main__":
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\n[NOTIFICATION] Остановлено")
